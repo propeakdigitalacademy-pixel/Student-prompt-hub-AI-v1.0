@@ -1234,7 +1234,7 @@ bot.command('set_mod', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   const on = state === 'on';
   await db.setBotSetting('moderation_enabled', on);
-  await safeSend(ctx, `🛡️ *Auto-Moderation ${on ? 'ENABLED 🟢' : 'DISABLED 🔴'}*\\.`);
+  await safeSend(ctx, `🛡️ *Auto-Moderation ${on ? 'ENABLED 🟢' : 'DISABLED 🔴'}*.`);
 });
   
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1258,14 +1258,14 @@ bot.command('set_system_prompt', async (ctx) => {
 
     if (newPrompt.toLowerCase() === 'default') {
       await db.setBotSetting('system_prompt', 'default');
-      return safeSend(ctx, `✅ *AI Personality Reset to Default\\!*\n\n_Active immediately — no restart needed\\._`);
+      return safeSend(ctx, `✅ *AI Personality Reset to Default!*\n\n_Active immediately — no restart needed._`);
     }
 
     await db.setBotSetting('system_prompt', newPrompt);
     await safeSend(ctx,
       `✅ *AI System Prompt Updated\\!* 🧠\n\n✦ ──────────────── ✦\n` +
       `*New Personality Preview:*\n_"${newPrompt.substring(0, 150)}${newPrompt.length > 150 ? '...' : ''}"_\n` +
-      `✦ ──────────────── ✦\n\n🟢 *Active immediately — no restart needed\\!*\n\n` +
+      `✦ ──────────────── ✦\n\n🟢 *Active immediately — no restart needed!*\n\n` +
       `To revert: \`/set_system_prompt ${pin} default\``
     );
   } catch (e) { await db.logError('set_system_prompt', e); }
@@ -1281,9 +1281,9 @@ bot.command('set_welcome', async (ctx) => {
   const message = parts.slice(2).join(' ').trim();
   if (!pin || !(await db.checkAdminPin(pin))) return;
   if (!message) return safeSend(ctx, `❌ *Usage:* \`/set_welcome <PIN> Your welcome message\`\n_Use \\{name\\} for user's name\\._\n\nTo reset: \`/set_welcome <PIN> default\``);
-  if (message.toLowerCase() === 'default') { await db.setBotSetting('welcome_msg', 'default'); return safeSend(ctx, `✅ *Welcome message reset to default\\.*`); }
+  if (message.toLowerCase() === 'default') { await db.setBotSetting('welcome_msg', 'default'); return safeSend(ctx, `✅ *Welcome message reset to default.*`); }
   await db.setBotSetting('welcome_msg', message);
-  await safeSend(ctx, `✅ *Welcome Message Updated\\!*\n\n_Preview:_\n\n${message.replace(/\{name\}/gi, 'Student')}\n\n🟢 *Active immediately on /start\\.*`);
+  await safeSend(ctx, `✅ *Welcome Message Updated!*\n\n_Preview:_\n\n${message.replace(/\{name\}/gi, 'Student')}\n\n🟢 *Active immediately on /start.*`);
 });
 
 bot.command('set_about', async (ctx) => {
@@ -1294,7 +1294,7 @@ bot.command('set_about', async (ctx) => {
   if (!message) return safeSend(ctx, `❌ *Usage:* \`/set_about <PIN> Your about text\`\n\nTo reset: \`/set_about <PIN> default\``);
   if (message.toLowerCase() === 'default') { await db.setBotSetting('about_msg', 'default'); return safeSend(ctx, `✅ *About message reset to default\\.*`); }
   await db.setBotSetting('about_msg', message);
-  await safeSend(ctx, `✅ *About Message Updated\\!*\n\n🟢 Active immediately on /about\\.`);
+  await safeSend(ctx, `✅ *About Message Updated!*\n\n🟢 Active immediately on /about.`);
 });
 
 bot.command('set_help', async (ctx) => {
@@ -1305,7 +1305,7 @@ bot.command('set_help', async (ctx) => {
   if (!message) return safeSend(ctx, `❌ *Usage:* \`/set_help <PIN> Your help message\`\n\nTo reset: \`/set_help <PIN> default\``);
   if (message.toLowerCase() === 'default') { await db.setBotSetting('help_msg', 'default'); return safeSend(ctx, `✅ *Help message reset to default\\.*`); }
   await db.setBotSetting('help_msg', message);
-  await safeSend(ctx, `✅ *Help Message Updated\\!*\n\n🟢 Active immediately on /help\\.`);
+  await safeSend(ctx, `✅ *Help Message Updated!*\n\n🟢 Active immediately on /help.`);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1321,7 +1321,7 @@ bot.command('ban', async (ctx) => {
   const u = await db.getUser(uid);
   if (!u) return safeSend(ctx, `❌ User \`${uid}\` not found\\.`);
   await db.setBanned(uid, true);
-  await safeSend(ctx, `🚫 User \`${uid}\` (${u.username || 'no username'}) *banned*\\.`);
+  await safeSend(ctx, `🚫 User \`${uid}\` (${u.username || 'no username'}) *banned*.`);
 });
 
 bot.command('unban', async (ctx) => {
@@ -1331,7 +1331,7 @@ bot.command('unban', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   if (!uid) return safeSend(ctx, `❌ Usage: \`/unban <PIN> <USER_ID>\``);
   await db.setBanned(uid, false);
-  await safeSend(ctx, `✅ User \`${uid}\` *unbanned*\\.`);
+  await safeSend(ctx, `✅ User \`${uid}\` *unbanned*.`);
 });
 
 bot.command('changepin', async (ctx) => {
@@ -1339,9 +1339,9 @@ bot.command('changepin', async (ctx) => {
   const oldPin = parts[1];
   const newPin = parts[2];
   if (!oldPin || !(await db.checkAdminPin(oldPin))) return;
-  if (!newPin || newPin.length < 6) return safeSend(ctx, `❌ New PIN must be at least 6 characters\\.`);
+  if (!newPin || newPin.length < 6) return safeSend(ctx, `❌ New PIN must be at least 6 characters.`);
   await db.updateAdmin({ pin: newPin });
-  await safeSend(ctx, `✅ *Admin PIN changed successfully\\!*`);
+  await safeSend(ctx, `✅ *Admin PIN changed successfully!*`);
 });
 
 bot.command('broadcast', async (ctx) => {
@@ -1364,7 +1364,7 @@ bot.command('broadcast', async (ctx) => {
       await new Promise(r => setTimeout(r, 60));
     }
     await db.incBroadcasts();
-    await safeSend(ctx, `✅ *Broadcast Done\\!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
+    await safeSend(ctx, `✅ *Broadcast Done!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
   } catch (e) { await db.logError('broadcast', e); }
 });
 
@@ -1373,7 +1373,7 @@ bot.command('broadcast_img', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   ctx.session.broadcastMode = 'image';
   ctx.session.isAdmin       = true;
-  await safeSend(ctx, `🖼 *Image Broadcast Mode Active\\!* Send the image to broadcast now\\.`);
+  await safeSend(ctx, `🖼 *Image Broadcast Mode Active!* Send the image to broadcast now.`);
 });
 
 bot.command('broadcast_pdf', async (ctx) => {
@@ -1381,7 +1381,7 @@ bot.command('broadcast_pdf', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   ctx.session.broadcastMode = 'pdf';
   ctx.session.isAdmin       = true;
-  await safeSend(ctx, `📄 *PDF Broadcast Mode Active\\!* Send the PDF to broadcast now\\.`);
+  await safeSend(ctx, `📄 *PDF Broadcast Mode Active!* Send the PDF to broadcast now.`);
 });
 
 bot.command('maintenance', async (ctx) => {
@@ -1391,7 +1391,7 @@ bot.command('maintenance', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   const on = state === 'on';
   await db.setBotSetting('maintenance_mode', on);
-  await safeSend(ctx, `🔧 *Maintenance ${on ? 'ENABLED 🔴' : 'DISABLED 🟢'}*\\.`);
+  await safeSend(ctx, `🔧 *Maintenance ${on ? 'ENABLED 🔴' : 'DISABLED 🟢'}*.`);
 });
 
 bot.command('set_limit', async (ctx) => {
@@ -1402,7 +1402,7 @@ bot.command('set_limit', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   if (!uid || isNaN(num)) return safeSend(ctx, `❌ Usage: \`/set_limit <PIN> <USER_ID> <number>\``);
   await db.setUserField(uid, 'custom_limit', num);
-  await safeSend(ctx, `✅ Limit for \`${uid}\` set to *${num}*\\.`);
+  await safeSend(ctx, `✅ Limit for \`${uid}\` set to *${num}*.`);
 });
 
 bot.command('reset_usage', async (ctx) => {
@@ -1412,14 +1412,14 @@ bot.command('reset_usage', async (ctx) => {
   if (!pin || !(await db.checkAdminPin(pin))) return;
   if (!uid) return safeSend(ctx, `❌ Usage: \`/reset_usage <PIN> <USER_ID>\``);
   await db.setUserField(uid, 'today_count', 0);
-  await safeSend(ctx, `✅ Usage reset for \`${uid}\`\\.`);
+  await safeSend(ctx, `✅ Usage reset for \`${uid}\`.`);
 });
 
 bot.command('logs', async (ctx) => {
   const pin = ctx.message.text.split(' ')[1];
   if (!pin || !(await db.checkAdminPin(pin))) return;
   const logs = await db.getErrorLogs(10);
-  if (!logs.length) return safeSend(ctx, `✅ *No error logs\\.*`);
+  if (!logs.length) return safeSend(ctx, `✅ *No error logs.*`);
   let msg = `📋 *Last 10 Errors:*\n\n`;
   logs.forEach((l, i) => {
     msg += `*${i + 1}.* \`${l.context}\`\n${l.message?.substring(0, 80)}\n_${new Date(l.timestamp).toISOString().split('T')[0]}_\n\n`;
@@ -1436,7 +1436,7 @@ bot.command('user_info', async (ctx) => {
     if (!uid) return safeSend(ctx, `❌ Usage: \`/user_info <PIN> <USER_ID>\``);
 
     const u = await db.getUser(uid);
-    if (!u) return safeSend(ctx, `❌ User \`${uid}\` not found\\.`);
+    if (!u) return safeSend(ctx, `❌ User \`${uid}\` not found.`);
 
     const userLogs  = await db.getApiLogs({ userId: uid, limit: 5 });
     const userFlags = await db.getFlags();
@@ -1526,7 +1526,7 @@ function registerCustomCommand(name, prompt) {
       const userId      = await db.ensureUser(ctx.from);
       const displayName = await db.getDisplayName(userId, ctx.from);
       const { allowed } = await db.checkLimit(userId);
-      if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}\\!* Resets at midnight\\.`);
+      if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}!* Resets at midnight.`);
 
       const userText = ctx.message.text.split(' ').slice(1).join(' ').trim()
         || ctx.session?.lastAnalyzedContent
@@ -1543,7 +1543,7 @@ function registerCustomCommand(name, prompt) {
       const result = await callGroq(messages);
       try { await ctx.telegram.deleteMessage(ctx.chat.id, loadMsg.message_id); } catch (_) {}
 
-      if (!result) return safeSend(ctx, `⚠️ AI is busy\\. Try again in a moment\\.`);
+      if (!result) return safeSend(ctx, `⚠️ AI is busy. Try again in a moment.`);
 
       await db.incrementUsage(userId);
       await db.logApiCall(userId, `custom:${name}`);
@@ -1585,7 +1585,7 @@ bot.command('add_command', async (ctx) => {
     registerCustomCommand(name, prompt);
 
     await safeSend(ctx,
-      `✅ *Dynamic Command Created\\!* ✦\n\n▸ Command: \`/${name}\`\n▸ Prompt: _"${prompt.substring(0, 80)}..."_\n\n🟢 *Active immediately — no restart needed\\!*`
+      `✅ *Dynamic Command Created!* ✦\n\n▸ Command: \`/${name}\`\n▸ Prompt: _"${prompt.substring(0, 80)}..."_\n\n🟢 *Active immediately — no restart needed!*`
     );
   } catch (e) { await db.logError('add_command', e); }
 });
@@ -1614,7 +1614,7 @@ bot.command('add_menu_button', async (ctx) => {
     const newBtn  = cbOrUrl.startsWith('http') ? { text: label, url: cbOrUrl } : { text: label, callback_data: cbOrUrl };
 
     await db.addMenuButton([newBtn]);
-    await safeSend(ctx, `✅ *Button Added\\!* ✦\n\n▸ Label: *${label}*\n▸ Action: \`${cbOrUrl}\`\n\n🟢 Appears in Main Menu immediately\\.`);
+    await safeSend(ctx, `✅ *Button Added!* ✦\n\n▸ Label: *${label}*\n▸ Action: \`${cbOrUrl}\`\n\n🟢 Appears in Main Menu immediately.`);
   } catch (e) { await db.logError('add_menu_button', e); }
 });
 
@@ -1632,7 +1632,7 @@ bot.command('remove_menu_button', async (ctx) => {
     const removed = await db.removeMenuButton(label);
 
     if (!removed) return safeSend(ctx, `❌ Button *"${label}"* not found\\.`);
-    await safeSend(ctx, `✅ *Button Removed\\!*\n▸ Removed: *${label}*\nMenu updated immediately\\.`);
+    await safeSend(ctx, `✅ *Button Removed!*\n▸ Removed: *${label}*\nMenu updated immediately.`);
   } catch (e) { await db.logError('remove_menu_button', e); }
 });
 
@@ -1642,7 +1642,7 @@ bot.command('list_menu', async (ctx) => {
     if (!pin || !(await db.checkAdminPin(pin))) return;
 
     const menuButtons = await db.getMenuButtons();
-    if (!menuButtons.length) return safeSend(ctx, `📋 *Menu is empty\\.*`);
+    if (!menuButtons.length) return safeSend(ctx, `📋 *Menu is empty.*`);
 
     let msg = `📋 *Current Menu Buttons:*\n\n`;
     menuButtons.forEach((row, ri) => {
@@ -1677,7 +1677,7 @@ bot.on('photo', async (ctx) => {
         await new Promise(r => setTimeout(r, 60));
       }
       ctx.session.broadcastMode = null;
-      return safeSend(ctx, `✅ *Image Broadcast Done\\!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
+      return safeSend(ctx, `✅ *Image Broadcast Done!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
     }
 
     // Batch image awaiting
@@ -1689,10 +1689,10 @@ bot.on('photo', async (ctx) => {
       const expected = ctx.session.imageCount;
 
       if (received < expected) {
-        return safeSend(ctx, `✅ *Image ${received}/${expected} received\\.* Send the next one\\.`);
+        return safeSend(ctx, `✅ *Image ${received}/${expected} received\\.* Send the next one.`);
       }
 
-      await safeSend(ctx, `✅ *All ${expected} image${expected > 1 ? 's' : ''} received\\!* Analyzing...`);
+      await safeSend(ctx, `✅ *All ${expected} image${expected > 1 ? 's' : ''} received!* Analyzing...`);
       await processImageWithVision(ctx, userId, displayName,
         ctx.session.imagesReceived[ctx.session.imagesReceived.length - 1],
         `Analyze all ${expected} images. Extract all text, diagrams, formulas and academic content.`
@@ -1703,7 +1703,7 @@ bot.on('photo', async (ctx) => {
 
     // Single image
     const { allowed } = await db.checkLimit(userId);
-    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}\\!* Resets at midnight\\.`);
+    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}!* Resets at midnight.`);
 
     const photo   = ctx.message.photo[ctx.message.photo.length - 1];
     const caption = ctx.message.caption || 'Analyze this image. Extract all academic content, text, formulas, and diagrams in detail.';
@@ -1729,7 +1729,7 @@ async function processImageWithVision(ctx, userId, displayName, fileId, prompt) 
     const fullPrompt = `${sysPrompt}\n\n${prompt}`;
     const result     = await callGroqVision(fullPrompt, base64, 'image/jpeg');
 
-    if (!result) return safeSend(ctx, `⚠️ Could not analyze image\\. Please try again\\.`);
+    if (!result) return safeSend(ctx, `⚠️ Could not analyze image. Please try again.`);
 
     ctx.session.lastAnalyzedContent = result;
     await db.incrementUsage(userId);
@@ -1738,12 +1738,12 @@ async function processImageWithVision(ctx, userId, displayName, fileId, prompt) 
     await db.addToHistory(userId, 'assistant', result);
 
     await safeSend(ctx,
-      `🔍 *I've analyzed this 📸 Image\\.*\n\n${cleanText(result)}\n\n_What shall we do with this content?_`,
+      `🔍 *I've analyzed this 📸 Image.*\n\n${cleanText(result)}\n\n_What shall we do with this content?_`,
       actionKeyboard()
     );
   } catch (e) {
     await db.logError('processImageWithVision', e);
-    await safeSend(ctx, `❌ Could not process this image\\. Please try another format\\.`);
+    await safeSend(ctx, `❌ Could not process this image. Please try another format.`);
   }
 }
 
@@ -1764,7 +1764,7 @@ bot.on('document', async (ctx) => {
         await new Promise(r => setTimeout(r, 60));
       }
       ctx.session.broadcastMode = null;
-      return safeSend(ctx, `✅ *PDF Broadcast Done\\!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
+      return safeSend(ctx, `✅ *PDF Broadcast Done!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
     }
 
     // Batch PDF awaiting
@@ -1775,10 +1775,10 @@ bot.on('document', async (ctx) => {
       const expected = ctx.session.pdfCount;
 
       if (received < expected) {
-        return safeSend(ctx, `✅ *PDF ${received}/${expected} received\\.* Send the next one\\.`);
+        return safeSend(ctx, `✅ *PDF ${received}/${expected} received.* Send the next one.`);
       }
 
-      await safeSend(ctx, `✅ *All ${expected} PDF${expected > 1 ? 's' : ''} received\\!* Processing...`);
+      await safeSend(ctx, `✅ *All ${expected} PDF${expected > 1 ? 's' : ''} received!* Processing...`);
       for (const pdf of ctx.session.pdfsReceived) {
         await processPDFDocument(ctx, userId, displayName, pdf.fileId, pdf.name);
       }
@@ -1788,10 +1788,10 @@ bot.on('document', async (ctx) => {
 
     // Single document
     const { allowed } = await db.checkLimit(userId);
-    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}\\!* Resets at midnight\\.`);
+    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}!* Resets at midnight.`);
 
     if (!mimeType.includes('pdf') && !mimeType.includes('text') && !mimeType.includes('document') && !mimeType.includes('msword') && !mimeType.includes('officedocument')) {
-      return safeSend(ctx, `❌ *Unsupported file type\\.* Please upload a PDF, Word doc, or text file\\.`);
+      return safeSend(ctx, `❌ *Unsupported file type.* Please upload a PDF, Word doc, or text file.`);
     }
 
     await ctx.reply(`📄 Processing ${mimeType.includes('pdf') ? 'PDF' : 'document'}, ${displayName}...`);
@@ -1855,7 +1855,7 @@ async function processPDFDocument(ctx, userId, displayName, fileId, fileName) {
     ];
 
     const result = await callGroq(messages);
-    if (!result) return safeSend(ctx, `⚠️ Could not analyze document\\. Please try again\\.`);
+    if (!result) return safeSend(ctx, `⚠️ Could not analyze document. Please try again.`);
 
     ctx.session.lastAnalyzedContent = extractedText;
     await db.incrementUsage(userId);
@@ -1864,12 +1864,12 @@ async function processPDFDocument(ctx, userId, displayName, fileId, fileName) {
     await db.addToHistory(userId, 'assistant', result);
 
     await safeSend(ctx,
-      `📄 *I've analyzed: "${fileName}"\\.*\n\n${cleanText(result)}\n\n_What shall we do with this content?_`,
+      `📄 *I've analyzed: "${fileName}".*\n\n${cleanText(result)}\n\n_What shall we do with this content?_`,
       actionKeyboard()
     );
   } catch (e) {
     await db.logError('processPDFDocument', e);
-    await safeSend(ctx, `❌ Could not read this file\\. Try another PDF or paste the text directly\\.`);
+    await safeSend(ctx, `❌ Could not read this file. Try another PDF or paste the text directly.`);
   } finally {
     cleanupFile(tmpImagePath);
   }
@@ -1880,7 +1880,7 @@ bot.on('voice', async (ctx) => {
     const userId      = await db.ensureUser(ctx.from);
     const displayName = await db.getDisplayName(userId, ctx.from);
     const { allowed } = await db.checkLimit(userId);
-    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}\\!* Resets at midnight\\.`);
+    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}!* Resets at midnight.`);
 
     await ctx.reply(`🎤 Transcribing your voice note, ${displayName}...`);
 
@@ -1890,7 +1890,7 @@ bot.on('voice', async (ctx) => {
     const buffer   = await response.buffer();
 
     const transcript = await callGroqWhisper(buffer, 'voice.ogg');
-    if (!transcript) return safeSend(ctx, `⚠️ Could not transcribe audio\\. Type your question instead\\.`);
+    if (!transcript) return safeSend(ctx, `⚠️ Could not transcribe audio. Type your question instead.`);
 
     await safeSend(ctx, `🎤 *Transcription:*\n_"${transcript}"_\n\nAnalyzing...`);
 
@@ -1903,7 +1903,7 @@ bot.on('voice', async (ctx) => {
     ];
 
     const result = await callGroq(messages);
-    if (!result) return safeSend(ctx, `⚠️ AI is busy\\. Try again\\.`);
+    if (!result) return safeSend(ctx, `⚠️ AI is busy. Try again.`);
 
     ctx.session.lastAnalyzedContent = transcript;
     await db.incrementUsage(userId);
@@ -1912,12 +1912,12 @@ bot.on('voice', async (ctx) => {
     await db.addToHistory(userId, 'assistant', result);
 
     await safeSend(ctx,
-      `🔍 *I've identified this as a 🎤 Voice Note\\.*\n\n${cleanText(result)}\n\n_What shall we do with this content?_`,
+      `🔍 *I've identified this as a 🎤 Voice Note.*\n\n${cleanText(result)}\n\n_What shall we do with this content?_`,
       actionKeyboard()
     );
   } catch (e) {
     await db.logError('voiceHandler', e);
-    await safeSend(ctx, `❌ Could not process voice note\\. Please try again or type your question\\.`);
+    await safeSend(ctx, `❌ Could not process voice note. Please try again or type your question.`);
   }
 });
 
@@ -1925,7 +1925,7 @@ bot.on(['video', 'video_note'], async (ctx) => {
   const userId      = await db.ensureUser(ctx.from);
   const displayName = await db.getDisplayName(userId, ctx.from);
   await safeSend(ctx,
-    `🎥 *Video received, ${displayName}\\!*\n\nFor video content, please:\n▸ Extract the audio → send as voice note\n▸ OR take a screenshot → send as image\n▸ OR type/paste the content text directly\\!`
+    `🎥 *Video received, ${displayName}!*\n\nFor video content, please:\n▸ Extract the audio → send as voice note\n▸ OR take a screenshot → send as image\n▸ OR type/paste the content text directly!`
   );
 });
 
@@ -1948,11 +1948,11 @@ bot.on('text', async (ctx) => {
 
     if (modResult.action === 'warn') {
       await safeSend(ctx,
-        `⚠️ *Warning, ${displayName}\\!*\n\n` +
-        `Your message contained content that violates our community guidelines\\.\n\n` +
-        `Please keep all conversations *academic and respectful*\\.\n` +
-        `Further violations may result in a ban\\.\n\n` +
-        `_Let's focus on learning\\! 📚_`
+        `⚠️ *Warning, ${displayName}!*\n\n` +
+        `Your message contained content that violates our community guidelines.\n\n` +
+        `Please keep all conversations *academic and respectful*.\n` +
+        `Further violations may result in a ban.\n\n` +
+        `_Let's focus on learning! 📚_`
       );
       if (modResult.severity === 'critical') return;
     }
@@ -1960,38 +1960,38 @@ bot.on('text', async (ctx) => {
     // ── DAILY LIMIT CHECK ──────────────────────────────────────────────────
     const { allowed, count, limit } = await db.checkLimit(userId);
     if (!allowed) {
-      return safeSend(ctx, `⏰ *Daily Limit Reached, ${displayName}\\!*\n\n${usageBar(count, limit)}\n\nResets at midnight\\. 🌙`);
+      return safeSend(ctx, `⏰ *Daily Limit Reached, ${displayName}!*\n\n${usageBar(count, limit)}\n\nResets at midnight. 🌙`);
     }
 
     // ── BATCH COUNT INPUT ──────────────────────────────────────────────────
     if (ctx.session?.mode === 'image_count_pending') {
       const n = parseInt(text, 10);
-      if (isNaN(n) || n < 1 || n > 20) return safeSend(ctx, `❌ Please enter a number between 1 and 20\\.`);
+      if (isNaN(n) || n < 1 || n > 50) return safeSend(ctx, `❌ Please enter a number between 1 and 50.`);
       ctx.session.imageCount = n; ctx.session.imagesReceived = []; ctx.session.mode = 'image_awaiting';
-      return safeSend(ctx, `✅ Got it\\! Please send *${n}* image${n > 1 ? 's' : ''} now\\.`);
+      return safeSend(ctx, `✅ Got it! Please send *${n}* image${n > 1 ? 's' : ''} now.`);
     }
 
     if (ctx.session?.mode === 'pdf_count_pending') {
       const n = parseInt(text, 10);
       if (isNaN(n) || n < 1 || n > 20) return safeSend(ctx, `❌ Please enter a number between 1 and 20\\.`);
       ctx.session.pdfCount = n; ctx.session.pdfsReceived = []; ctx.session.mode = 'pdf_awaiting';
-      return safeSend(ctx, `✅ Got it\\! Please send *${n}* PDF file${n > 1 ? 's' : ''} now\\.`);
+      return safeSend(ctx, `✅ Got it! Please send *${n}* PDF file${n > 1 ? 's' : ''} now.`);
     }
 
     // ── STRICT AI RULE CHECKS ──────────────────────────────────────────────
     if (/\b(llm|gpt|groq|claude|gemini|openai|api.?key|model|source.?code|how.{0,20}built|show.{0,15}code|backend|prompt.?inject)\b/i.test(text)) {
-      return safeSend(ctx, `🤫 *Top Secret\\!*\nI'm your dedicated AI tutor\\. My inner workings are classified\\!\nBut I CAN help you ace that exam\\! Want to try a quiz? 📝`);
+      return safeSend(ctx, `🤫 *Top Secret!*\nI'm your dedicated AI tutor. My inner workings are classified!\nBut I CAN help you ace that exam! Want to try a quiz? 📝`);
     }
 
     if (/\b(who (made|built|created|owns)|your owner|your creator|who is peculiar|propeak)\b/i.test(text)) {
       return safeSend(ctx,
-        `🎓 *My Creator:*\n\nBuilt by *Peculiar*\\! 👑\nFounder of *Propeak Digital Academy*\nExpert Video Editor, Web Dev, Graphics Designer\\.\n📱 Contact: *07042999216*`,
+        `🎓 *My Creator:*\n\nBuilt by *Peculiar*! 👑\nFounder of *Propeak Digital Academy*\nExpert Video Editor, Web Dev, Graphics creation and other online jobs... visit his bio via Whatsapp.\n📱 Contact: *07042999216*`,
         Markup.inlineKeyboard([[Markup.button.url('💬 Contact Peculiar', WA_SUPPORT)]])
       );
     }
 
     if (/\b(write.{0,20}(bot|script|hack|exploit|virus|malware|app|website)|how.{0,10}hack|crack|bypass|jailbreak)\b/i.test(text)) {
-      return safeSend(ctx, `⚠️ *Out of Scope\\!*\nI'm strictly a *Student Tutor*\\. I help you understand concepts, not write scripts or hacks\\.\nLet's focus on your studies\\! 📖`);
+      return safeSend(ctx, `⚠️ *Out of Scope!*\nI'm strictly a *Student Tutor*. I help you understand concepts, not write scripts or hacks.\nLet's focus on your studies! 📖`);
     }
 
     // ── SMART SWIPE/REPLY CONTEXT ──────────────────────────────────────────
@@ -2029,7 +2029,7 @@ bot.on('text', async (ctx) => {
     const result = await callGroq(messages);
     try { await ctx.telegram.deleteMessage(ctx.chat.id, typingMsg.message_id); } catch (_) {}
 
-    if (!result) return safeSend(ctx, `⚠️ *AI is busy right now, ${displayName}\\.*\nTry again in a moment\\! 🔄`);
+    if (!result) return safeSend(ctx, `⚠️ *AI is busy right now, ${displayName}.*\nTry again in a moment! 🔄`);
 
     await db.incrementUsage(userId);
     await db.logApiCall(userId, 'chat');
