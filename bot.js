@@ -52,19 +52,21 @@ bot.use(session());
 bot.use((ctx, next) => { if (!ctx.session) ctx.session = {}; return next(); });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// § 2. MINIMAL HEALTH SERVER (Hugging Face Spaces requires open port)
+// § 2. HEALTH CHECK SERVER (Hugging Face Spaces — MUST bind an open port)
 // ═══════════════════════════════════════════════════════════════════════════
 
 const healthServer = http.createServer((req, res) => {
-  if (req.url === '/health' || req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('✅ Student Prompt Hub AI v4.0 is Online & Running...');
+  if (req.url === '/health') {
+    res.writeHead(200);
+    res.end('OK');
   } else {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ alive: true, version: '4.0.0', ts: new Date().toISOString() }));
+    res.writeHead(404);
+    res.end('Not Found');
   }
 });
-healthServer.listen(PORT, () => console.log(`[Health] ✅ Health server on port ${PORT}`));
+healthServer.listen(process.env.PORT || 8080, () =>
+  console.log(`[Health] ✅ Health server running on port ${process.env.PORT || 8080}`)
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // § 3. CORE HELPER FUNCTIONS (pure, no DB calls)
@@ -332,7 +334,7 @@ function detectIntent(text) {
 function generatePollinationsImage(prompt) {
   const encoded = encodeURIComponent(prompt.substring(0, 400));
   return `${POLLINATIONS}/flashcard+educational+${encoded},clean+design,colorful,modern,infographic,no+text?width=800&height=600&nologo=true`;
-}
+                                               }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // § 6. gTTS — REAL TEXT-TO-SPEECH
@@ -404,12 +406,20 @@ const QUOTES = [
   '✨ *"Study hard, dream big, achieve the impossible. You were born for greatness."*'
 ];
 // ═══════════════════════════════════════════════════════════════════════════
-// § 8. GLOBAL MIDDLEWARE: BAN + MAINTENANCE
+// § 8. GLOBAL MIDDLEWARE: ADMIN IMMUNITY + BAN + MAINTENANCE
 // ═══════════════════════════════════════════════════════════════════════════
 
 bot.use(async (ctx, next) => {
   if (!ctx.from) return next();
   const userId = String(ctx.from.id);
+
+  // ── ADMIN IMMUNITY: bypass ALL checks if sender is the admin ──────────────
+  if (ADMIN_TG_ID && userId === String(ADMIN_TG_ID)) {
+    ctx.session = ctx.session || {};
+    ctx.session.isAdmin = true;
+    await db.ensureUser(ctx.from).catch(() => {});
+    return next(); // skip ban, limit, maintenance — admin always gets through
+  }
 
   try {
     // Ensure user record
@@ -550,7 +560,7 @@ bot.action('action_flashcard_gen', async (ctx) => {
   const displayName = await db.getDisplayName(userId, ctx.from);
   await safeSend(ctx, `🎨 *Visual Flashcard Generator*\n\nType: \`/flashcard <topic>\`\nExample: \`/flashcard Photosynthesis\`\n\nI'll create a beautiful visual flashcard for you, ${displayName}! 🃏`);
 });
-
+  
 // ═══════════════════════════════════════════════════════════════════════════
 // § 12. POST-UPLOAD ACTION CALLBACKS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -682,7 +692,7 @@ async function sendCommandsList(ctx) {
       return safeSend(ctx, customHelp.replace(/\{name\}/gi, displayName));
     }
 
-    await safeSend(ctx,
+    await safeSend(ctx, 
       `✦ ══════════════════════════ ✦\n` +
       `    📜 *C O M M A N D   C E N T R E*\n` +
       `✦ ══════════════════════════ ✦\n\n` +
@@ -773,13 +783,27 @@ bot.command('motivate', async (ctx) => {
   await safeSend(ctx, `✦ ─────────── ✦\n\n🌟 *Daily Motivation*\n\n${q}\n\n💪 *You got this, ${displayName}!* 🚀\n\n✦ ─────────── ✦`);
 });
 
-bot.command('new_topic', async (ctx) => {
-  const userId = await db.ensureUser(ctx.from);
-  await db.clearHistory(userId);
-  ctx.session.lastAnalyzedContent = null;
-  ctx.session.mode                = null;
-  await safeSend(ctx, `🧹 *Context Cleared!* ✦\nReady for a new subject! What do you want to learn next? 📚`, await mainMenuKeyboard());
-});
+// Both /new_topic and /newtopic work identically
+async function handleNewTopic(ctx) {
+  try {
+    const userId = await db.ensureUser(ctx.from);
+    await db.clearHistory(userId);
+    if (ctx.session) {
+      ctx.session.lastAnalyzedContent = null;
+      ctx.session.mode                = null;
+    }
+    await safeSend(
+      ctx,
+      `🧹 *New topic started! History cleared.* ✦\n\nReady for a new subject! What do you want to learn next? 📚`,
+      await mainMenuKeyboard()
+    );
+  } catch (e) {
+    await db.logError('new_topic', e);
+    await safeSend(ctx, `🧹 *Context cleared!* Ready for a new subject. 📚`);
+  }
+}
+bot.command('new_topic', handleNewTopic);
+bot.command('newtopic',  handleNewTopic);
 
 bot.command('timer', async (ctx) => {
   const userId      = await db.ensureUser(ctx.from);
@@ -816,7 +840,6 @@ bot.command('privacy', async (ctx) => {
     `▸ *Sharing:* NEVER sold or shared\n▸ *Memory:* Last 5 messages for context\n▸ *Deletion:* Contact support anytime\n\n_Your privacy is our priority._`
   );
 });
-
 // ═══════════════════════════════════════════════════════════════════════════
 // § 14. LEARNING COMMANDS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -915,8 +938,79 @@ bot.command('flashcard', async (ctx) => {
   } catch (e) { await db.logError('flashcard', e); }
 });
 // ═══════════════════════════════════════════════════════════════════════════
-// § 15. /tts — REAL gTTS TEXT-TO-SPEECH
+// § 15. /tts — REAL gTTS TEXT-TO-SPEECH (Multi-layer, flexible, smart)
 // ═══════════════════════════════════════════════════════════════════════════
+
+// ── Shared TTS executor — called from both /tts command and natural language ──
+async function executeTTS(ctx, voiceInput, textContent, displayName, userId) {
+  // Normalise gender: accept boy/male/man/guy → 'boy'; girl/female/woman/lady → 'girl'
+  const BOY_WORDS  = /^(boy|male|man|guy|m)$/i;
+  const GIRL_WORDS = /^(girl|female|woman|lady|f)$/i;
+
+  let voice = 'girl'; // default
+  if (voiceInput && BOY_WORDS.test(voiceInput.trim()))  voice = 'boy';
+  if (voiceInput && GIRL_WORDS.test(voiceInput.trim())) voice = 'girl';
+
+  // TTS Animation — 0% → 100%
+  const animMsg = await ctx.reply(`🔊 *Initializing voice mode...*`);
+  await new Promise(r => setTimeout(r, 700));
+  await safeEdit(ctx, animMsg.message_id,
+    `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*`);
+  await new Promise(r => setTimeout(r, 700));
+  await safeEdit(ctx, animMsg.message_id,
+    `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*\n\n*Progress:* \`0%\``);
+  await new Promise(r => setTimeout(r, 500));
+  await safeEdit(ctx, animMsg.message_id,
+    `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*\n\n*Progress:* \`0% → 50%\``);
+  await new Promise(r => setTimeout(r, 500));
+  await safeEdit(ctx, animMsg.message_id,
+    `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*\n\n*Progress:* \`0% → 50% → 100% ✅\``);
+  await new Promise(r => setTimeout(r, 400));
+
+  const voiceStyle = voice === 'girl'
+    ? 'warm, enthusiastic, encouraging female teacher'
+    : 'calm, authoritative, clear male professor';
+
+  const messages = [
+    {
+      role: 'system',
+      content: `You are a ${voiceStyle}. Explain conversationally as if speaking aloud. Use natural speech patterns with "..." pauses. Max 300 words. Be engaging and educational.`
+    },
+    { role: 'user', content: textContent }
+  ];
+
+  const speechText = await callGroq(messages);
+  try { await ctx.telegram.deleteMessage(ctx.chat.id, animMsg.message_id); } catch (_) {}
+
+  if (!speechText) return safeSend(ctx, `⚠️ *TTS engine busy!* Try again in a moment.`);
+
+  const voiceEmoji = voice === 'girl' ? '👩' : '👨';
+  const voiceLabel = voice === 'girl' ? 'Female Voice (British)' : 'Male Voice (US)';
+  let ttsPath = null;
+
+  try {
+    ttsPath = await generateGTTS(speechText, voice);
+    await ctx.replyWithAudio(
+      { source: fs.createReadStream(ttsPath), filename: `tts_${voice}.mp3` },
+      {
+        title:     `${voiceEmoji} ${voiceLabel}`,
+        performer: 'Student Prompt Hub AI',
+        caption:   `🔊 *${voiceLabel}*\n_"${textContent.substring(0, 50)}..."_\n\nBy Propeak Digital Academy`,
+        parse_mode: 'Markdown'
+      }
+    );
+    await safeSend(ctx, `📄 *Transcript:*\n\n_"${cleanText(speechText)}"_`);
+  } catch (ttsErr) {
+    await db.logError('gTTS', ttsErr);
+    // Graceful text fallback
+    await sendLong(ctx, `${voiceEmoji} *[${voiceLabel} Output]:*\n\n_"${speechText}"_`);
+  } finally {
+    cleanupFile(ttsPath);
+  }
+
+  await db.incrementUsage(userId);
+  await db.logApiCall(userId, 'tts');
+}
 
 bot.command('tts', async (ctx) => {
   try {
@@ -925,69 +1019,88 @@ bot.command('tts', async (ctx) => {
     const { allowed } = await db.checkLimit(userId);
     if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}!*`);
 
-    const args   = ctx.message.text.split(' ').slice(1);
-    const voice  = args[0]?.toLowerCase();
-    const textIn = args.slice(1).join(' ').trim();
+    const rawArgs = ctx.message.text.split(' ').slice(1); // everything after /tts
 
-    if (!['boy', 'girl'].includes(voice) || !textIn) {
+    // ── LAYER B: If user REPLIED to a bot message ──────────────────────────
+    const repliedText = ctx.message.reply_to_message?.text
+      || ctx.message.reply_to_message?.caption
+      || '';
+
+    if (repliedText) {
+      // User swiped a message and typed something like "read this in boy voice"
+      // Detect gender hint from the reply text
+      const replyStr  = rawArgs.join(' ').toLowerCase();
+      let genderHint  = 'girl'; // default
+      if (/\b(boy|male|man|guy)\b/.test(replyStr)) genderHint = 'boy';
+      if (/\b(girl|female|woman|lady)\b/.test(replyStr)) genderHint = 'girl';
+
+      // The content to read is the replied message
+      return await executeTTS(ctx, genderHint, repliedText, displayName, userId);
+    }
+
+    // ── LAYER A: Explicit /tts [gender] [text] ─────────────────────────────
+    if (rawArgs.length > 0) {
+      const BOY_WORDS  = /^(boy|male|man|guy|m)$/i;
+      const GIRL_WORDS = /^(girl|female|woman|lady|f)$/i;
+
+      const firstWord = rawArgs[0] || '';
+
+      if (BOY_WORDS.test(firstWord) || GIRL_WORDS.test(firstWord)) {
+        // /tts boy <text> OR /tts girl <text>
+        const voiceToken = firstWord;
+        const textIn     = rawArgs.slice(1).join(' ').trim();
+
+        if (!textIn) {
+          // /tts boy — no text but they gave a gender, try to use last context
+          const history = await db.getHistory(userId);
+          const context = ctx.session?.lastAnalyzedContent
+            || history.filter(m => m.role === 'assistant').slice(-1)[0]?.content
+            || '';
+          if (!context) {
+            return safeSend(ctx,
+              `🔊 *TTS Usage:*\n` +
+              `\`/tts girl Explain photosynthesis\`\n` +
+              `\`/tts boy What is gravity?\`\n\n` +
+              `_Or swipe/reply to any message and type "read this in girl voice"_`
+            );
+          }
+          return await executeTTS(ctx, voiceToken, context, displayName, userId);
+        }
+
+        return await executeTTS(ctx, voiceToken, textIn, displayName, userId);
+
+      } else {
+        // No gender word — treat entire args as text, default voice = girl
+        const textIn = rawArgs.join(' ').trim();
+        if (!textIn) {
+          return safeSend(ctx,
+            `🔊 *TTS Usage:*\n` +
+            `\`/tts girl Explain photosynthesis\`\n` +
+            `\`/tts boy What is gravity?\`\n\n` +
+            `_Or swipe/reply to any message and type "read this in boy voice"_`
+          );
+        }
+        return await executeTTS(ctx, 'girl', textIn, displayName, userId);
+      }
+    }
+
+    // ── No args at all: read last bot response in default (girl) voice ──────
+    const history = await db.getHistory(userId);
+    const lastBotMsg = history.filter(m => m.role === 'assistant').slice(-1)[0]?.content
+      || ctx.session?.lastAnalyzedContent
+      || '';
+
+    if (!lastBotMsg) {
       return safeSend(ctx,
-        `🔊 *TTS Usage:*\n\`/tts boy Your text here\`\n\`/tts girl Your text here\`\n\n_Example: \`/tts girl Explain photosynthesis\`_`
+        `🔊 *TTS Usage:*\n` +
+        `\`/tts girl Explain photosynthesis\`\n` +
+        `\`/tts boy What is gravity?\`\n\n` +
+        `_Or swipe/reply to any message and type "read this in boy voice"_`
       );
     }
 
-    let content = textIn;
-    if (ctx.message.reply_to_message?.text) {
-      content = `Context: ${ctx.message.reply_to_message.text.substring(0, 500)}\n\nExplain: ${textIn}`;
-    }
+    return await executeTTS(ctx, 'girl', lastBotMsg, displayName, userId);
 
-    // TTS Animation
-    const animMsg = await ctx.reply(`🔊 *Initializing voice mode...*`);
-    await new Promise(r => setTimeout(r, 700));
-    await safeEdit(ctx, animMsg.message_id, `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*`);
-    await new Promise(r => setTimeout(r, 700));
-    await safeEdit(ctx, animMsg.message_id, `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*\n\n*Progress:* \`0%\``);
-    await new Promise(r => setTimeout(r, 500));
-    await safeEdit(ctx, animMsg.message_id, `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*\n\n*Progress:* \`0% → 50%\``);
-    await new Promise(r => setTimeout(r, 500));
-    await safeEdit(ctx, animMsg.message_id, `🔊 *Initializing voice mode...*\n🎙 *Entering voice mode...*\n🔍 *Checking prompt...*\n\n*Progress:* \`0% → 50% → 100% ✅\``);
-    await new Promise(r => setTimeout(r, 400));
-
-    const voiceStyle = voice === 'girl'
-      ? 'warm, enthusiastic, encouraging female teacher'
-      : 'calm, authoritative, clear male professor';
-
-    const messages = [
-      { role: 'system', content: `You are a ${voiceStyle}. Explain conversationally, as if speaking aloud. Use natural speech patterns with "..." pauses. Max 300 words. Be engaging and educational.` },
-      { role: 'user',   content }
-    ];
-
-    const speechText = await callGroq(messages);
-    try { await ctx.telegram.deleteMessage(ctx.chat.id, animMsg.message_id); } catch (_) {}
-
-    if (!speechText) return safeSend(ctx, `⚠️ *TTS engine busy!* Try again in a moment.`);
-
-    let ttsPath = null;
-    try {
-      ttsPath = await generateGTTS(speechText, voice);
-      const voiceEmoji = voice === 'girl' ? '👩' : '👨';
-      const voiceLabel = voice === 'girl' ? 'Female Voice (British)' : 'Male Voice (US)';
-
-      await ctx.replyWithAudio(
-        { source: fs.createReadStream(ttsPath), filename: `tts_${voice}.mp3` },
-        { title: `${voiceEmoji} ${voiceLabel}`, performer: 'Student Prompt Hub AI', caption: `🔊 *${voiceLabel}*\n_"${textIn.substring(0, 50)}..."_\n\nBy Propeak Digital Academy`, parse_mode: 'Markdown' }
-      );
-      await safeSend(ctx, `📄 *Transcript:*\n\n_"${cleanText(speechText)}"_`);
-    } catch (ttsErr) {
-      await db.logError('gTTS', ttsErr);
-      const voiceEmoji = voice === 'girl' ? '👩' : '👨';
-      const voiceLabel = voice === 'girl' ? 'Female Voice' : 'Male Voice';
-      await sendLong(ctx, `${voiceEmoji} *\\[${voiceLabel} Output\\]:*\n\n_"${speechText}"_`);
-    } finally {
-      cleanupFile(ttsPath);
-    }
-
-    await db.incrementUsage(userId);
-    await db.logApiCall(userId, 'tts');
   } catch (e) { await db.logError('tts', e); }
 });
 
@@ -1307,7 +1420,7 @@ bot.command('set_help', async (ctx) => {
   await db.setBotSetting('help_msg', message);
   await safeSend(ctx, `✅ *Help Message Updated!*\n\n🟢 Active immediately on /help.`);
 });
-
+                   
 // ═══════════════════════════════════════════════════════════════════════════
 // § 19. REMAINING ADMIN COMMANDS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1346,23 +1459,51 @@ bot.command('changepin', async (ctx) => {
 
 bot.command('broadcast', async (ctx) => {
   try {
-    const parts   = ctx.message.text.split(' ');
-    const pin     = parts[1];
-    const message = parts.slice(2).join(' ').trim();
+    const parts = ctx.message.text.split(' ');
+    const pin   = parts[1];
     if (!pin || !(await db.checkAdminPin(pin))) return;
-    if (!message) return safeSend(ctx, `❌ Usage: \`/broadcast <PIN> Your message\``);
+
+    // ── Detect if this message has an attached photo ───────────────────────
+    const hasPhoto   = ctx.message.photo && ctx.message.photo.length > 0;
+    const photoFileId = hasPhoto
+      ? ctx.message.photo[ctx.message.photo.length - 1].file_id
+      : null;
+
+    // Caption / text (everything after the PIN, or the photo caption)
+    const bodyText = hasPhoto
+      ? (ctx.message.caption || '').trim()         // photo broadcast — use caption
+      : parts.slice(2).join(' ').trim();            // text broadcast — rest of command
+
+    if (!hasPhoto && !bodyText) {
+      return safeSend(ctx,
+        `❌ *Usage:*\n` +
+        `▸ Text: \`/broadcast <PIN> Your message\`\n` +
+        `▸ Photo: Send \`/broadcast <PIN>\` as the photo caption`
+      );
+    }
 
     const userIds = await db.getActiveUserIds();
     let ok = 0, fail = 0;
 
-    await safeSend(ctx, `📢 *Broadcasting to ${userIds.length} users\\.\\.\\.*`);
+    await safeSend(ctx, `📢 *Broadcasting to ${userIds.length} users...*`);
+
     for (const uid of userIds) {
       try {
-        await ctx.telegram.sendMessage(uid, `📢 *Announcement:*\n\n${message}`, { parse_mode: 'Markdown' });
+        if (hasPhoto) {
+          // Send photo + optional caption
+          await ctx.telegram.sendPhoto(uid, photoFileId, {
+            caption:    bodyText ? `📢 *Announcement:*\n\n${bodyText}` : `📢 *Announcement from Student Prompt Hub AI*`,
+            parse_mode: 'Markdown'
+          });
+        } else {
+          // Text only
+          await ctx.telegram.sendMessage(uid, `📢 *Announcement:*\n\n${bodyText}`, { parse_mode: 'Markdown' });
+        }
         ok++;
       } catch { fail++; }
       await new Promise(r => setTimeout(r, 60));
     }
+
     await db.incBroadcasts();
     await safeSend(ctx, `✅ *Broadcast Done!*\n📤 Sent: *${ok}* | ❌ Failed: *${fail}*`);
   } catch (e) { await db.logError('broadcast', e); }
@@ -1453,7 +1594,6 @@ bot.command('user_info', async (ctx) => {
     await safeSend(ctx, msg);
   } catch (e) { await db.logError('user_info', e); }
 });
-
 // ── /stats_calc <PIN> <query> ─────────────────────────────────────────────────
 bot.command('stats_calc', async (ctx) => {
   try {
@@ -1655,7 +1795,6 @@ bot.command('list_menu', async (ctx) => {
     await safeSend(ctx, msg);
   } catch (e) { await db.logError('list_menu', e); }
 });
-
 // ═══════════════════════════════════════════════════════════════════════════
 // § 22. MEDIA HANDLERS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1976,8 +2115,8 @@ bot.on('text', async (ctx) => {
       if (isNaN(n) || n < 1 || n > 20) return safeSend(ctx, `❌ Please enter a number between 1 and 20\\.`);
       ctx.session.pdfCount = n; ctx.session.pdfsReceived = []; ctx.session.mode = 'pdf_awaiting';
       return safeSend(ctx, `✅ Got it! Please send *${n}* PDF file${n > 1 ? 's' : ''} now.`);
-    }
-
+      }
+  
     // ── STRICT AI RULE CHECKS ──────────────────────────────────────────────
     if (/\b(llm|gpt|groq|claude|gemini|openai|api.?key|model|source.?code|how.{0,20}built|show.{0,15}code|backend|prompt.?inject)\b/i.test(text)) {
       return safeSend(ctx, `🤫 *Top Secret!*\nI'm your dedicated AI tutor. My inner workings are classified!\nBut I CAN help you ace that exam! Want to try a quiz? 📝`);
@@ -2000,6 +2139,30 @@ bot.on('text', async (ctx) => {
       const repliedText = ctx.message.reply_to_message.text || ctx.message.reply_to_message.caption || '';
       if (repliedText) {
         contextPrefix = `Context from replied message:\n"${repliedText.substring(0, 1200)}"\n\nUser follow-up: `;
+      }
+    }
+
+    // ── NATURAL LANGUAGE TTS TRIGGER ──────────────────────────────────────
+    // Catches: "voice note of this", "read this in boy voice", "speak this", "audio please"
+    const ttsNLPattern = /\b(voice\s*note|read\s*this|speak\s*(this|it)?|audio|say\s*this|read\s*aloud|tts)\b/i;
+    if (ttsNLPattern.test(text)) {
+      const { allowed: ttsAllowed } = await db.checkLimit(userId);
+      if (ttsAllowed) {
+        // Detect gender from text
+        let nlVoice = 'girl';
+        if (/\b(boy|male|man|guy)\b/i.test(text)) nlVoice = 'boy';
+
+        // Content: replied message > last analyzed > last bot message > the user's own text
+        const ttsHistory = await db.getHistory(userId);
+        const replyContent = ctx.message.reply_to_message?.text
+          || ctx.message.reply_to_message?.caption
+          || '';
+        const nlContent = replyContent
+          || ctx.session?.lastAnalyzedContent
+          || ttsHistory.filter(m => m.role === 'assistant').slice(-1)[0]?.content
+          || text;
+
+        return await executeTTS(ctx, nlVoice, nlContent, displayName, userId);
       }
     }
 
