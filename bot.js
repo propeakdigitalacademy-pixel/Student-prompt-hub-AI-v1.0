@@ -254,7 +254,7 @@ async function buildSystemPrompt(displayName, extraInstructions = '') {
     `The student's name is: ${displayName}. ALWAYS address them by this name in every reply.\n\n` +
     `IDENTITY RULES (NON-NEGOTIABLE):\n` +
     `1. If asked about your model, API, code, or how you were built → Reply ONLY: "🤫 Top Secret! I'm your dedicated AI tutor. Let's focus on learning!"\n` +
-    `2. If asked about your owner/creator → Reply: "🎓 Built by Peculiar, Founder of Propeak Digital Academy. Expert Video Editor, Web Dev, Graphics Designer. Contact: wa.me/2347042999216"\n` +
+    `2. If asked about your owner/creator → Reply: "🎓 Built by Peculiar, Founder of Propeak Digital Academy. Expert Video Editor, into graphics and bots creation and so many more wanna check out his bio 👇 Contact: wa.me/2347042999216"\n` +
     `3. REFUSE non-academic tasks → "⚠️ Out of Scope! I'm a Student Tutor. Let's focus on your studies! 📖"\n` +
     `4. End EVERY response with: "Does this help, ${displayName}? Need more detail? 😊" OR "Shall I go deeper on any part? 🎯"\n\n` +
     `FORMATTING:\n- Use Markdown: **bold**, *italic*, bullets, numbered lists\n- Be thorough, educational, student-friendly\n- Use emojis naturally\n- Structure long answers with clear headers`
@@ -450,7 +450,7 @@ bot.start(async (ctx) => {
       ? customWelcome.replace(/\{name\}/gi, displayName)
       : (
         `✦  ──────────── ✦ ⋅ ────────── ✦\n` +
-        `      🎓 *S T U D E N T   H U B*\n` +
+        `      🎓 *S T U D E N T  P R O M P T  H U B*\n` +
         `         *By Peculiar* ✨\n` +
         `✦  ──────────── ✦ ⋅ ────────── ✦\n\n` +
         `👋 Welcome *${displayName}*\\! 🎓\n` +
@@ -501,7 +501,7 @@ bot.action('mode_image', async (ctx) => {
   ctx.session.imageCount = 0;
   ctx.session.imagesReceived = [];
   await safeSend(ctx,
-    `📸 *Image Mode Activated\\!* ✦\n\nHow many images are you sending? _(e\\.g\\. 3)_\n_I'll wait for all of them before analyzing\\._`
+    `📸 *Image Mode Activated!* ✦\n\nHow many images are you sending? _(e\\.g\\. 3)_\n_I'll wait for all of them before analyzing._`
   );
 });
 
@@ -512,7 +512,7 @@ bot.action('mode_pdf', async (ctx) => {
   ctx.session.pdfCount = 0;
   ctx.session.pdfsReceived = [];
   await safeSend(ctx,
-    `📄 *PDF Mode Activated\\!* ✦\n\nHow many PDF files are you sending? _(e\\.g\\. 2)_\n_I'll wait for all of them before analyzing\\._`
+    `📄 *PDF Mode Activated!* ✦\n\nHow many PDF files are you sending? _(e\\.g\\. 2)_\n_I'll wait for all of them before analyzing._`
   );
 });
 
@@ -520,7 +520,7 @@ bot.action('mode_voice', async (ctx) => {
   await ctx.answerCbQuery();
   await db.ensureUser(ctx.from);
   ctx.session.mode = 'voice';
-  await safeSend(ctx, `🎤 *Voice Mode Activated\\!* ✦\n\nSend me a voice note and I'll transcribe and analyze it\\!\n_Speak clearly for best results\\._`);
+  await safeSend(ctx, `🎤 *Voice Mode Activated\\!* ✦\n\nSend me a voice note and I'll transcribe and analyze it!\n_Speak clearly for best results._`);
 });
 
 bot.action('mode_chat', async (ctx) => {
@@ -528,7 +528,7 @@ bot.action('mode_chat', async (ctx) => {
   const userId      = await db.ensureUser(ctx.from);
   const displayName = await db.getDisplayName(userId, ctx.from);
   ctx.session.mode  = 'chat';
-  await safeSend(ctx, `❓ *Quick Question Mode, ${displayName}\\!* ✦\n\nJust type your question below\\! 🧠`);
+  await safeSend(ctx, `❓ *Quick Question Mode, ${displayName}\\!* ✦\n\nJust type your question below! 🧠`);
 });
 
 bot.action('back_start', async (ctx) => {
@@ -537,7 +537,7 @@ bot.action('back_start', async (ctx) => {
   const displayName = await db.getDisplayName(userId, ctx.from);
   ctx.session.mode  = null;
   await safeSend(ctx,
-    `✦ ─────────────────────── ✦\n\n👋 Welcome back, *${displayName}*\\! Ready to keep learning\\? 🎓\n\n✦ ─────────────────────── ✦`,
+    `✦ ─────────────────────── ✦\n\n👋 Welcome back, *${displayName}*! Ready to keep learning? 🎓\n\n✦ ─────────────────────── ✦`,
     startKeyboard()
   );
 });
@@ -548,7 +548,7 @@ bot.action('action_flashcard_gen', async (ctx) => {
   await ctx.answerCbQuery();
   const userId      = await db.ensureUser(ctx.from);
   const displayName = await db.getDisplayName(userId, ctx.from);
-  await safeSend(ctx, `🎨 *Visual Flashcard Generator*\n\nType: \`/flashcard <topic>\`\nExample: \`/flashcard Photosynthesis\`\n\nI'll create a beautiful visual flashcard for you, ${displayName}\\! 🃏`);
+  await safeSend(ctx, `🎨 *Visual Flashcard Generator*\n\nType: \`/flashcard <topic>\`\nExample: \`/flashcard Photosynthesis\`\n\nI'll create a beautiful visual flashcard for you, ${displayName}! 🃏`);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -563,7 +563,7 @@ async function handleActionCallback(ctx, intent, extraArg = '') {
     const { allowed, count, limit } = await db.checkLimit(userId);
 
     if (!allowed) {
-      return safeSend(ctx, `⏰ *Daily Limit Reached, ${displayName}\\!*\n\n${usageBar(count, limit)}\n\nResets at midnight\\. 🌙`);
+      return safeSend(ctx, `⏰ *Daily Limit Reached, ${displayName}!*\n\n${usageBar(count, limit)}\n\nResets at midnight. 🌙`);
     }
 
     const history = await db.getHistory(userId);
@@ -571,7 +571,7 @@ async function handleActionCallback(ctx, intent, extraArg = '') {
       || history.filter(m => m.role === 'user').slice(-1)[0]?.content;
 
     if (!content) {
-      return safeSend(ctx, `⚠️ *No content to analyze\\!*\nUpload an image/PDF or type a question first, ${displayName}\\.`);
+      return safeSend(ctx, `⚠️ *No content to analyze!*\nUpload an image/PDF or type a question first, ${displayName}.`);
     }
 
     const loadMsg  = await ctx.reply(`⏳ Processing, ${displayName}...`);
@@ -586,7 +586,7 @@ async function handleActionCallback(ctx, intent, extraArg = '') {
     const result = await callGroq(messages);
     try { await ctx.telegram.deleteMessage(ctx.chat.id, loadMsg.message_id); } catch (_) {}
 
-    if (!result) return safeSend(ctx, `⚠️ *AI is busy\\!* Please try again in a moment\\.`);
+    if (!result) return safeSend(ctx, `⚠️ *AI is busy!* Please try again in a moment.`);
 
     await db.incrementUsage(userId);
     await db.logApiCall(userId, intent);
@@ -614,7 +614,7 @@ bot.command('setname', async (ctx) => {
     const name   = ctx.message.text.split(' ').slice(1).join(' ').trim();
     if (!name) return safeSend(ctx, `❌ Usage: \`/setname YourName\``);
     await db.setUserField(userId, 'custom_name', name);
-    await safeSend(ctx, `✅ *Name Set\\!* ✦\n\nHi *${name}*, welcome to your smart learning hub\\! I'll call you this name from now on\\. 🚀`);
+    await safeSend(ctx, `✅ *Name Set!* ✦\n\nHi *${name}*, welcome to your smart learning hub! I'll call you this name from now on. 🚀`);
   } catch (e) { await db.logError('setname', e); }
 });
 
@@ -667,7 +667,7 @@ bot.command('limit', async (ctx) => {
     const settings    = await db.getBotSettings();
     const limit       = u?.custom_limit ?? settings.daily_limit ?? DAILY_LIMIT;
 
-    await safeSend(ctx, `⚡ *Daily Limit — ${displayName}*\n\n🔢 Your limit: *${limit} queries/day*\n📅 Resets at midnight automatically\n\n_Contact support to request an increase\\._`);
+    await safeSend(ctx, `⚡ *Daily Limit — ${displayName}*\n\n🔢 Your limit: *${limit} queries/day*\n📅 Resets at midnight automatically\n\n_Contact support to request an increase._`);
   } catch (e) { await db.logError('limit', e); }
 });
 
@@ -711,7 +711,7 @@ async function sendCommandsList(ctx) {
       `▸ /timer — Pomodoro timer\n` +
       `▸ /terms, /privacy\n\n` +
       `✦ ──────────────────────────── ✦\n` +
-      `_Tip: Type naturally\\! "explain this" works too, ${displayName}\\._`
+      `_Tip: Type naturally! "explain this" works too, ${displayName}._`
     );
   } catch (e) { await db.logError('help', e); }
 }
@@ -749,28 +749,28 @@ bot.command('about', async (ctx) => {
       ? customAbout
       : (
         `✦ ════════════════════════ ✦\n      👑 *A B O U T   U S*\n✦ ════════════════════════ ✦\n\n` +
-        `🎓 Built by *Peculiar*\\!\nFounder of *Propeak Digital Academy*\n\n` +
-        `▸ 🎬 *Video Editor*\n▸ 💻 *Web Developer*\n▸ 🎨 *Graphics Designer*\n▸ 🚀 *Online Business Expert*\n\n` +
+        `🎓 Built by *Peculiar*! \nFounder of *Propeak Digital Academy*\n\n` +
+        `▸ 🎬 *Video Editor*\n▸ 💻 *Bot creator*\n▸ 🎨 *Graphics Creation*\n▸ 🚀 *Online Business Expert*\n\n` +
         `📱 WhatsApp: *07042999216*`
       );
     await safeSend(ctx, msg, Markup.inlineKeyboard([[Markup.button.url('💬 Contact Peculiar', WA_SUPPORT)]]));
   } catch (e) { await db.logError('about', e); }
 });
 
-bot.command('support',  async (ctx) => { await db.ensureUser(ctx.from); await safeSend(ctx, `💬 *Support*\n\nReach Peculiar on WhatsApp for any issues\\!`, Markup.inlineKeyboard([[Markup.button.url('💬 Chat with Peculiar', WA_SUPPORT)]])); });
-bot.command('feedback', async (ctx) => { await db.ensureUser(ctx.from); await safeSend(ctx, `✍️ *Send Feedback\\!*\n\nWe love hearing from students\\!`, Markup.inlineKeyboard([[Markup.button.url('✍️ Send Feedback', WA_FEEDBACK)]])); });
+bot.command('support',  async (ctx) => { await db.ensureUser(ctx.from); await safeSend(ctx, `💬 *Support*\n\nReach Peculiar on WhatsApp for any issues!`, Markup.inlineKeyboard([[Markup.button.url('💬 Chat with Peculiar', WA_SUPPORT)]])); });
+bot.command('feedback', async (ctx) => { await db.ensureUser(ctx.from); await safeSend(ctx, `✍️ *Send Feedback!*\n\nWe love hearing from students!`, Markup.inlineKeyboard([[Markup.button.url('✍️ Send Feedback', WA_FEEDBACK)]])); });
 
 bot.command('share', async (ctx) => {
   const userId      = await db.ensureUser(ctx.from);
   const displayName = await db.getDisplayName(userId, ctx.from);
-  await safeSend(ctx, `🚀 *Share the Bot, ${displayName}\\!*\n\n📲 *${BOT_SHARE_LINK}*\n\n_Copy & send to anyone who needs an AI study buddy\\!_`);
+  await safeSend(ctx, `🚀 *Share the Bot, ${displayName}!*\n\n📲 *${BOT_SHARE_LINK}*\n\n_Copy & send to anyone who needs an AI study buddy!_`);
 });
 
 bot.command('motivate', async (ctx) => {
   const userId      = await db.ensureUser(ctx.from);
   const displayName = await db.getDisplayName(userId, ctx.from);
   const q           = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-  await safeSend(ctx, `✦ ─────────── ✦\n\n🌟 *Daily Motivation*\n\n${q}\n\n💪 *You got this, ${displayName}\\!* 🚀\n\n✦ ─────────── ✦`);
+  await safeSend(ctx, `✦ ─────────── ✦\n\n🌟 *Daily Motivation*\n\n${q}\n\n💪 *You got this, ${displayName}!* 🚀\n\n✦ ─────────── ✦`);
 });
 
 bot.command('new_topic', async (ctx) => {
@@ -778,21 +778,21 @@ bot.command('new_topic', async (ctx) => {
   await db.clearHistory(userId);
   ctx.session.lastAnalyzedContent = null;
   ctx.session.mode                = null;
-  await safeSend(ctx, `🧹 *Context Cleared\\!* ✦\nReady for a new subject\\! What do you want to learn next? 📚`, await mainMenuKeyboard());
+  await safeSend(ctx, `🧹 *Context Cleared!* ✦\nReady for a new subject! What do you want to learn next? 📚`, await mainMenuKeyboard());
 });
 
 bot.command('timer', async (ctx) => {
   const userId      = await db.ensureUser(ctx.from);
   const displayName = await db.getDisplayName(userId, ctx.from);
   await safeSend(ctx,
-    `✦ ─────────── ✦\n⏱ *Pomodoro Timer Started\\!*\n✦ ─────────── ✦\n\n` +
-    `🔴 *25 minutes of focus begins NOW\\!*\n\n` +
+    `✦ ─────────── ✦\n⏱ *Pomodoro Timer Started!*\n✦ ─────────── ✦\n\n` +
+    `🔴 *25 minutes of focus begins NOW!*\n\n` +
     `▸ 📖 Study hard for 25 min\n▸ ☕ 5-min break\n▸ 🔁 After 4 rounds → 15–30 min break\n\n` +
-    `_Focus, ${displayName}\\. I'll remind you when done\\! 💪_`
+    `_Focus, ${displayName}. I'll remind you when done! 💪_`
   );
   setTimeout(async () => {
     try {
-      await ctx.replyWithMarkdown(`🔔 *Time's Up, ${displayName}\\!* ✦\n\n✅ 25-minute session complete\\!\n☕ *Take a 5-minute break now\\.* 🎉`);
+      await ctx.replyWithMarkdown(`🔔 *Time's Up, ${displayName}!* ✦\n\n✅ 25-minute session complete!\n☕ *Take a 5-minute break now.* 🎉`);
     } catch (e) { await db.logError('timer-reminder', e); }
   }, 25 * 60 * 1000);
 });
@@ -803,8 +803,8 @@ bot.command('terms', async (ctx) => {
   await safeSend(ctx,
     `✦ ══════════════════════════ ✦\n    📋 *T E R M S*\n✦ ══════════════════════════ ✦\n\n` +
     `▸ *1.* Educational use only\n▸ *2.* No reverse-engineering\n▸ *3.* You own your uploads\n` +
-    `▸ *4.* Age 13\\+ required\n▸ *5.* ${s.daily_limit || DAILY_LIMIT} queries/day\n` +
-    `▸ *6.* We may ban abusive users\n▸ *7.* Terms may change\n\n_By using this bot, you agree\\._`
+    `▸ *4.* Age 13+ required\n▸ *5.* ${s.daily_limit || DAILY_LIMIT} queries/day\n` +
+    `▸ *6.* We may ban abusive users\n▸ *7.* Terms may change\n\n_By using this bot, you agree._`
   );
 });
 
@@ -813,7 +813,7 @@ bot.command('privacy', async (ctx) => {
   await safeSend(ctx,
     `✦ ══════════════════════════ ✦\n    🔒 *P R I V A C Y*\n✦ ══════════════════════════ ✦\n\n` +
     `▸ *Stored:* User ID, username, join date, query count\n▸ *Media:* NOT stored permanently\n` +
-    `▸ *Sharing:* NEVER sold or shared\n▸ *Memory:* Last 5 messages for context\n▸ *Deletion:* Contact support anytime\n\n_Your privacy is our priority\\._`
+    `▸ *Sharing:* NEVER sold or shared\n▸ *Memory:* Last 5 messages for context\n▸ *Deletion:* Contact support anytime\n\n_Your privacy is our priority._`
   );
 });
 
@@ -827,13 +827,13 @@ async function handleLearningCommand(ctx, intent, extraArg = '') {
     const displayName = await db.getDisplayName(userId, ctx.from);
     const { allowed, count, limit } = await db.checkLimit(userId);
 
-    if (!allowed) return safeSend(ctx, `⏰ *Daily Limit Reached, ${displayName}\\!*\n\n${usageBar(count, limit)}\n\nResets at midnight\\. 🌙`);
+    if (!allowed) return safeSend(ctx, `⏰ *Daily Limit Reached, ${displayName}!*\n\n${usageBar(count, limit)}\n\nResets at midnight. 🌙`);
 
     const history = await db.getHistory(userId);
     const content = ctx.session?.lastAnalyzedContent
       || history.filter(m => m.role === 'user').slice(-1)[0]?.content;
 
-    if (!content) return safeSend(ctx, `⚠️ *No content, ${displayName}\\!*\nUpload an image/PDF or type your notes first\\.`);
+    if (!content) return safeSend(ctx, `⚠️ *No content, ${displayName}!*\nUpload an image/PDF or type your notes first.`);
 
     const loadMsg   = await ctx.reply(`⏳ Working on it, ${displayName}...`);
     const prompt    = buildLearningPrompt(intent, content, extraArg);
@@ -847,7 +847,7 @@ async function handleLearningCommand(ctx, intent, extraArg = '') {
     const result = await callGroq(messages);
     try { await ctx.telegram.deleteMessage(ctx.chat.id, loadMsg.message_id); } catch (_) {}
 
-    if (!result) return safeSend(ctx, `⚠️ *AI is busy\\!* Try again in a moment\\.`);
+    if (!result) return safeSend(ctx, `⚠️ *AI is busy!* Try again in a moment.`);
 
     await db.incrementUsage(userId);
     await db.logApiCall(userId, intent);
@@ -873,7 +873,7 @@ bot.command('flashcard', async (ctx) => {
     const userId      = await db.ensureUser(ctx.from);
     const displayName = await db.getDisplayName(userId, ctx.from);
     const { allowed } = await db.checkLimit(userId);
-    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached\\!* Resets at midnight\\.`);
+    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached!* Resets at midnight.`);
 
     const topic = ctx.message.text.split(' ').slice(1).join(' ').trim()
       || ctx.session?.lastAnalyzedContent?.substring(0, 100) || '';
@@ -923,7 +923,7 @@ bot.command('tts', async (ctx) => {
     const userId      = await db.ensureUser(ctx.from);
     const displayName = await db.getDisplayName(userId, ctx.from);
     const { allowed } = await db.checkLimit(userId);
-    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}\\!*`);
+    if (!allowed) return safeSend(ctx, `⏰ *Daily limit reached, ${displayName}!*`);
 
     const args   = ctx.message.text.split(' ').slice(1);
     const voice  = args[0]?.toLowerCase();
@@ -964,7 +964,7 @@ bot.command('tts', async (ctx) => {
     const speechText = await callGroq(messages);
     try { await ctx.telegram.deleteMessage(ctx.chat.id, animMsg.message_id); } catch (_) {}
 
-    if (!speechText) return safeSend(ctx, `⚠️ *TTS engine busy\\!* Try again in a moment\\.`);
+    if (!speechText) return safeSend(ctx, `⚠️ *TTS engine busy!* Try again in a moment.`);
 
     let ttsPath = null;
     try {
@@ -1067,7 +1067,7 @@ bot.action('admin_bans', async (ctx) => {
   try {
     const allUsers = await db.getAllUsers();
     const banned   = allUsers.filter(u => u.is_banned);
-    if (!banned.length) return safeSend(ctx, `✅ *No banned users currently\\.*`);
+    if (!banned.length) return safeSend(ctx, `✅ *No banned users currently.*`);
     let msg = `🚫 *Banned Users (${banned.length}):*\n\n`;
     banned.forEach(u => { msg += `▸ \`${u._id}\` — ${u.username || 'no username'}\n`; });
     await safeSend(ctx, msg);
@@ -1106,7 +1106,7 @@ bot.action('admin_logs', async (ctx) => {
   if (!ctx.session?.isAdmin) return;
   try {
     const logs = await db.getErrorLogs(10);
-    if (!logs.length) return safeSend(ctx, `✅ *No errors logged\\.*`);
+    if (!logs.length) return safeSend(ctx, `✅ *No errors logged.*`);
     let msg = `📋 *Last 10 Errors:*\n\n`;
     logs.forEach((l, i) => {
       msg += `*${i + 1}.* \`${l.context}\` — ${l.message?.substring(0, 60)}\n_${new Date(l.timestamp).toISOString().split('T')[0]}_\n\n`;
@@ -1122,7 +1122,7 @@ bot.action('admin_review_flags', async (ctx) => {
     const pending = await db.getFlags({ status: 'pending' });
     const total   = await db.countFlags();
     if (!pending.length) {
-      return safeSend(ctx, `✦ *Moderation Review* ✦\n\n✅ *No pending flags\\!* All clean\\.\n\nTotal flags logged: *${total}*`);
+      return safeSend(ctx, `✦ *Moderation Review* ✦\n\n✅ *No pending flags!* All clean.\n\nTotal flags logged: *${total}*`);
     }
     await safeSend(ctx, `✦ *Moderation Review* ✦\n\n🛡️ *Pending Flags: ${pending.length}*\n\nReview each user below:`);
     for (const flag of pending.slice(0, 10)) {
@@ -1136,7 +1136,7 @@ bot.action('admin_review_flags', async (ctx) => {
       await safeSend(ctx, msg, flagActionsKeyboard(flag._id));
       await new Promise(r => setTimeout(r, 300));
     }
-    if (pending.length > 10) await safeSend(ctx, `_...and ${pending.length - 10} more\\._`);
+    if (pending.length > 10) await safeSend(ctx, `_...and ${pending.length - 10} more._`);
   } catch (e) { await db.logError('admin_review_flags', e); }
 });
 
@@ -1149,7 +1149,7 @@ bot.action('admin_view_prompt', async (ctx) => {
     const isCustom  = prompt && prompt !== 'default';
     await safeSend(ctx,
       `🧠 *Current AI System Prompt:*\n\nStatus: *${isCustom ? '🟢 Custom (Live)' : '⚪ Default'}*\n\n` +
-      `${isCustom ? `_"${prompt.substring(0, 300)}..."_` : '_Using default Propeak student tutor identity\\._'}\n\n` +
+      `${isCustom ? `_"${prompt.substring(0, 300)}..."_` : '_Using default Propeak student tutor identity._'}\n\n` +
       `To update:\n\`/set_system_prompt <PIN> Your new instructions here\`\n\nTo reset:\n\`/set_system_prompt <PIN> default\``
     );
   } catch (e) { await db.logError('admin_view_prompt', e); }
@@ -1165,7 +1165,7 @@ bot.command('review_flags', async (ctx) => {
     const total   = await db.countFlags();
 
     if (!pending.length) {
-      return safeSend(ctx, `✦ *Moderation Review* ✦\n\n✅ *No pending flags\\!* All clean\\.\n\nTotal flags logged: *${total}*`);
+      return safeSend(ctx, `✦ *Moderation Review* ✦\n\n✅ *No pending flags!* All clean.\n\nTotal flags logged: *${total}*`);
     }
 
     await safeSend(ctx, `✦ *Moderation Review* ✦\n\n🛡️ *Pending Flags: ${pending.length}*\n\nReview each user below:`);
@@ -1193,16 +1193,16 @@ bot.action(/^flag_warn_(.+)$/, async (ctx) => {
     const flaggedUserId = ctx.match[1];
     const flags         = await db.getFlags();
     const entry         = flags.find(f => f._id === flaggedUserId);
-    if (!entry) return safeSend(ctx, `❌ Flag entry not found\\.`);
+    if (!entry) return safeSend(ctx, `❌ Flag entry not found.`);
 
     await db.setFlagStatus(flaggedUserId, 'warned');
     try {
       await bot.telegram.sendMessage(flaggedUserId,
-        `⚠️ *Official Warning from Student Prompt Hub AI*\n\nYour recent message(s) were flagged for inappropriate content\\.\nPlease keep conversations academic and respectful\\.\n\n*Further violations may result in a ban\\.*`,
+        `⚠️ *Official Warning from Student Prompt Hub AI*\n\nYour recent message(s) were flagged for inappropriate content.\nPlease keep conversations academic and respectful.\n\n*Further violations may result in a ban.*`,
         { parse_mode: 'Markdown' }
       );
     } catch (_) {}
-    await safeSend(ctx, `✅ *Warning sent to ${entry.username || flaggedUserId}\\!*\n\nFlag status: ⚠️ Warned`);
+    await safeSend(ctx, `✅ *Warning sent to ${entry.username || flaggedUserId}!*\n\nFlag status: ⚠️ Warned`);
   } catch (e) { await db.logError('flag_warn', e); }
 });
 
@@ -1213,7 +1213,7 @@ bot.action(/^flag_ban_(.+)$/, async (ctx) => {
     const flaggedUserId = ctx.match[1];
     await db.setBanned(flaggedUserId, true);
     await db.setFlagStatus(flaggedUserId, 'banned');
-    await safeSend(ctx, `🚫 *User \`${flaggedUserId}\` has been BANNED\\!*\n\nFlag cleared\\.`);
+    await safeSend(ctx, `🚫 *User \`${flaggedUserId}\` has been BANNED!*\n\nFlag cleared\\.`);
   } catch (e) { await db.logError('flag_ban', e); }
 });
 
@@ -1222,7 +1222,7 @@ bot.action(/^flag_ignore_(.+)$/, async (ctx) => {
   if (!ctx.session?.isAdmin) return;
   try {
     await db.setFlagStatus(ctx.match[1], 'ignored');
-    await safeSend(ctx, `✅ *Flag for \`${ctx.match[1]}\` marked as Ignored\\.*`);
+    await safeSend(ctx, `✅ *Flag for \`${ctx.match[1]}\` marked as Ignored.*`);
   } catch (e) { await db.logError('flag_ignore', e); }
 });
 
