@@ -1,0 +1,46 @@
+# ── Node modules (reinstalled inside container) ───────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Environment secrets (injected via HF Spaces Secrets) ─────────────
+.env
+.env.*
+!.env.example
+
+# ── Git metadata ──────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── Legacy local database file (replaced by MongoDB) ──────────────────
+database.json
+
+# ── Legacy server file (not used in Docker) ───────────────────────────
+server.js
+
+# ── Dev/Editor artifacts ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+  *.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Temp files ────────────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.mp3
+*.ogg
+*.wav
+*.png.tmp
+
+# ── Documentation ─────────────────────────────────────────────────────
+README.md
+*.md
