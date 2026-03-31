@@ -48,8 +48,8 @@ COPY . .
 RUN mkdir -p /tmp/sphai && chmod 777 /tmp/sphai
 
 # ── Hugging Face Spaces runs as non-root user (uid 1000) ──────────────
-RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /app /tmp/sphai
-USER 1000
+RUN useradd -m -u 1001 botuser && chown -R botuser:botuser /app /tmp/sphai
+USER 1001
 
 # ── Expose port ────────────────────────────────────────────────────────
 EXPOSE 8080
