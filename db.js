@@ -125,17 +125,18 @@ async function getUser(userId) {
 }
 
 /**
- * Ensure user record exists. Creates it if not. Auto-resets daily count.
- * Returns userId string.
- */
+Ensure user record exists. Creates it if not. Auto-resets daily count.
+Returns userId string.
+*/
 async function ensureUser(telegramFrom) {
   const userId = String(telegramFrom.id);
   const today  = new Date().toISOString().split('T')[0];
   const c      = await col('users');
-
+  
   const existing = await c.findOne({ _id: userId });
-
+  
   if (!existing) {
+    // New user: Insert safely
     await c.insertOne({
       _id:          userId,
       username:     telegramFrom.username ? `@${telegramFrom.username}` : null,
@@ -148,16 +149,28 @@ async function ensureUser(telegramFrom) {
       custom_limit: null,
       warn_count:   0
     });
-  } else if (existing.last_reset !== today) {
-    // Auto-reset daily counter on new day
-    await c.updateOne(
-      { _id: userId },
-      { $set: { today_count: 0, last_reset: today } }
-    );
-  }
+  } else {
+    // Existing user: Update username ONLY if it changed, using $set to avoid conflicts
+    const newUsername = telegramFrom.username ? `@${telegramFrom.username}` : null;
+    
+    // Only update if username is different to save DB writes
+    if (existing.username !== newUsername) {
+      await c.updateOne(
+        { _id: userId },
+        { $set: { username: newUsername } } // Explicit $set prevents conflict
+      );
+    }
 
+    // Auto-reset daily counter on new day
+    if (existing.last_reset !== today) {
+      await c.updateOne(
+        { _id: userId },
+        { $set: { today_count: 0, last_reset: today } }
+      );
+    }
+  }
   return userId;
-}
+                                                }
 
 /**
  * Get display name: custom_name → @username → first_name → 'Student'
